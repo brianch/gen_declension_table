@@ -2,16 +2,15 @@
 name = "gen_declension_table"
 version = "0.1.0"
 authors = ["brianch <brianch@users.noreply.github.com>"]
-edition = "2018"
+edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-quick-xml = "0.18.1"
+quick-xml = "0.28.2"
 
-diesel = { version = "1.4.4", features = ["sqlite"] }
+diesel = { version = "2.0.3", features = ["sqlite"] }
 dotenv = "0.15.0"
 
-serde_json = "1.0"
-serde = "1.0.26"
-serde_derive = "1.0.26"
+serde_json = "1.0.96"
+serde = "1.0.160"
+serde_derive = "1.0.160"

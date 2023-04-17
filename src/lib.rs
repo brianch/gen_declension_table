@@ -22,7 +22,7 @@ pub fn establish_connection() -> SqliteConnection {
 
 }
 
-pub fn add_noun<'a>(conn: &SqliteConnection,
+pub fn add_noun<'a>(conn: &mut SqliteConnection,
                     gender: &'a str,
                     animate: &'a i32,
                     sing_nominative: &'a str,
@@ -67,7 +67,7 @@ pub fn add_noun<'a>(conn: &SqliteConnection,
             .expect("Error adding nouns");
 }
 
-pub fn add_nouns<'a>(conn: &SqliteConnection,
+pub fn add_nouns<'a>(conn: &mut SqliteConnection,
                     nouns: &[AddNoun]) {
     use schema::nouns;
 

@@ -4,7 +4,6 @@ use gen_declension_table::*;
 use quick_xml::Reader;
 use quick_xml::events::Event;
 use std::path::Path;
-use std::str;
 use std::env;
 
 extern crate diesel;
@@ -33,7 +32,7 @@ fn main() {
     let xml_reader = Reader::from_file(Path::new(path_to_xml));
     let mut dec_table: Vec<Noun> = Vec::new();
 
-    let connection = establish_connection();
+    let mut connection = establish_connection();
 
     let mut buf = Vec::new();
     let mut current_format: String = String::new();
@@ -49,14 +48,13 @@ fn main() {
     match xml_reader {
         Ok(mut reader) => {
             'readloop: loop {
-                match reader.read_event(&mut buf) {
+                match reader.read_event_into(&mut buf) {
                     Ok(Event::Start(ref e)) => {
-                        match e.name() {
+                        match e.name().as_ref() {
                             b"f" => {
                                 if is_noun {
                                     for attr in e.attributes() {
-                                        let attrib = attr.unwrap().unescaped_value().unwrap().into_owned();
-                                        current_format = str::from_utf8(&attrib).unwrap().to_string();
+                                        current_format = attr.unwrap().unescape_value().unwrap().into_owned();
                                     }
                                 }
                             },
@@ -64,12 +62,12 @@ fn main() {
                         }
                     },
                     Ok(Event::Empty(ref e)) => {
-                        match e.name() {
+                        match e.name().as_ref() {
                             b"g" => {
                                 if is_noun { // if we already know it's a noun, check the word number and declensions
                                     for attr in e.attributes() {
-                                        let attrib = &attr.unwrap().unescaped_value().unwrap().into_owned();
-                                        match str::from_utf8(attrib).unwrap_or_default() {
+                                        let attrib = attr.unwrap().unescape_value().unwrap().into_owned();
+                                        match attrib.as_ref() {
                                             "sing" => sing = true,
                                             "plur" => sing = false,
                                             "nomn" => case = NOMINATIVE,
@@ -90,8 +88,8 @@ fn main() {
                                     }
                                 } else { // if we don't know if it's a noun yet, take a look to see if it is
                                     for attr in e.attributes() {
-                                        let attrib = attr.unwrap().unescaped_value().unwrap().into_owned();
-                                        is_noun = str::from_utf8(&attrib).unwrap() == "NOUN";
+                                        let attrib = attr.unwrap().unescape_value().unwrap().into_owned();
+                                        is_noun = attrib == "NOUN";
                                     }
                                 }
                             }
@@ -99,7 +97,7 @@ fn main() {
                         }
                     },
                     Ok(Event::End(ref e)) => {
-                        match e.name() {
+                        match e.name().as_ref() {
                             b"lemmata" => break 'readloop,
                             b"f" => {
                                 if is_noun {
@@ -191,7 +189,7 @@ fn main() {
                     };
                     insert_vals.push(n);                 
                 }
-                add_nouns(&connection, &insert_vals); 
+                add_nouns(&mut connection, &insert_vals);
                 i = range_to + 1;               
             }
         },
